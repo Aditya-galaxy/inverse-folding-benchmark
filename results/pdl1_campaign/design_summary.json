@@ -40,7 +40,7 @@
     {
       "design_id": "binder_003",
       "backbone_idx": 1,
-      "sequence": "QQQQLLLLLLLLLILLKEIGGGKLILLLLLLLLILLLKLGGGEKLLLLLLLILLLILEE",
+      "sequence": "QNKELIVLIVLVIALVKEIGPGKLVILVILVLIALVIKLGPDEQLIVLAIVLIALVIEK",
       "length": 59,
       "roles": [
         "interface",
@@ -120,7 +120,7 @@
     {
       "design_id": "binder_004",
       "backbone_idx": 1,
-      "sequence": "LYEYVLLIILLILVLLRELGSGEIALLLLLILLILLIKIGGDKELIALVLLILLLALQR",
+      "sequence": "LKNYVLIAVLIALVILQELGDPEVALILVLILVAILVRIGPNKEIVALVLIALIVALDR",
       "length": 59,
       "roles": [
         "interface",
@@ -200,7 +200,7 @@
     {
       "design_id": "binder_015",
       "backbone_idx": 7,
-      "sequence": "QQNQLLLLLLLVLLLLKELGGGEILLLILLLLLLLLLKLPGGEELLVLLILLLLLLIEE",
+      "sequence": "QNYQLIVLAIVLIALVKELGPSEVLIAVLIAVLIAVLKIPGDEKILAVILVILAVILKE",
       "length": 59,
       "roles": [
         "interface",
@@ -280,7 +280,7 @@
     {
       "design_id": "binder_016",
       "backbone_idx": 7,
-      "sequence": "QQQQILALLIVLLLLLEELDPGELLIVVAAALLLLLVKLGGGRKILLLIILVLVLLVEK",
+      "sequence": "QNEQILAILVALIVLIEKLDGPELIAVIAVILIVILAKIGPGQKVLIVAILAIVLIAEK",
       "length": 59,
       "roles": [
         "interface",
@@ -360,7 +360,7 @@
     {
       "design_id": "binder_021",
       "backbone_idx": 10,
-      "sequence": "QQQQLLLVLLLLLILLEKLGGGKLLLLLLLLLLLLLLKLGGGKKLILLILLLLLLLLEE",
+      "sequence": "QNEQLVIALVILAVILEKIGPSKILVILVILAVILAVKLGPGRKLVILAILVILVILEK",
       "length": 59,
       "roles": [
         "interface",
@@ -440,7 +440,7 @@
     {
       "design_id": "binder_022",
       "backbone_idx": 10,
-      "sequence": "QKQQLLLILVVLLLILRKIGNGKLALILALLALLLLLELPGGKKIVVLLLLLILLLLEE",
+      "sequence": "QYNQLIVILAVLILVLQKVGNGKLAIVLMIVALIVLIELPGSKEIAVLIVILAVLIVEK",
       "length": 59,
       "roles": [
         "interface",
@@ -520,7 +520,7 @@
     {
       "design_id": "binder_027",
       "backbone_idx": 13,
-      "sequence": "QQNQLLLLLLLLLLLLEELGGGKLLLALIILLLLLLLKLGGGKKVLILLLLILLLLLEK",
+      "sequence": "QNYEILVILVILVAILEKIGPDRLVIALVIVLILVILKVGPGKRAVILVILAVILVIEQ",
       "length": 59,
       "roles": [
         "interface",
@@ -600,7 +600,7 @@
     {
       "design_id": "binder_028",
       "backbone_idx": 13,
-      "sequence": "QKEQLILVLIILLALLKEIPGPELLALLLILLILLLLKVPPNKKVLIILLLLLLIVIEE",
+      "sequence": "QYEQLVIALVILVALIKEVPGDELVMLIVALIVLILVKAPGNKEALVILVILVIAVIEK",
       "length": 59,
       "roles": [
         "interface",
@@ -680,7 +680,7 @@
     {
       "design_id": "binder_007",
       "backbone_idx": 3,
-      "sequence": "QQNNLLILLLLLLLLIKEGGGEILLLLILLLVLILLKGGGEELLLLLILLALLLLDKLE",
+      "sequence": "QNYKLIALIVLIAVLIKEGPGEVLIAVLIVLAIVLAKGPSEKILVILAVLAILVIDKLE",
       "length": 59,
       "roles": [
         "interface",
@@ -760,7 +760,7 @@
     {
       "design_id": "binder_008",
       "backbone_idx": 3,
-      "sequence": "YQQQILVILLLIILVLRQPPPELLLIIVLILLIAILKGSPEELALIILLALLIIVEKLK",
+      "sequence": "YQNNVLAILLIVALVLQDPGDELIVALVIALIVMLIKGDPEKLAIVLVIALVIVAERLK",
       "length": 59,
       "roles": [
         "interface",
@@ -840,7 +840,7 @@
     {
       "design_id": "binder_013",
       "backbone_idx": 6,
-      "sequence": "QQYQLILLLLLILLLIEEGGGKLLLLLLLLLLLLLLKGGGKKLLLLLLLILLLLLEKLE",
+      "sequence": "QNLKVILVILAVILIAEKGPSKLIVLIALVILLIVLKGPSKRLIVLAIVLIVLILEQLK",
       "length": 59,
       "roles": [
         "interface",
@@ -920,7 +920,7 @@
     {
       "design_id": "binder_014",
       "backbone_idx": 6,
-      "sequence": "QQNQLLVLVILIVLVLKDGPGRILLLLLLLLIIILVKGGPEKALLALLVVLILLLEKVE",
+      "sequence": "QNKQIVALVILAVLAIKSGDPRILVILLVLIAVLIAKGPDEKALIMVLAVILVLIERVE",
       "length": 59,
       "roles": [
         "interface",
@@ -1000,7 +1000,7 @@
     {
       "design_id": "binder_019",
       "backbone_idx": 9,
-      "sequence": "QQQYLLLLLLLILLLLKEGPPKVLLLLLLLLLLLLLKGGGKKLLLLALLLLIVLLKEIK",
+      "sequence": "QNEYLVILAVILAVILKEGPDKVILAVILAVILVIAKGPGKRLVILAVLIAVILVKEIQ",
       "length": 59,
       "roles": [
         "interface",
@@ -1080,7 +1080,7 @@
     {
       "design_id": "binder_020",
       "backbone_idx": 9,
-      "sequence": "QKQQLLIIAMLLIALLKEPGPRILLIILVLVLLLLLEGPGKRLLVILILLILILIKELE",
+      "sequence": "QYNEILVAMFILVMILKEPGDRVLIAVLAIVLIVLIEGSGKQLIAVLILVALIVAKELK",
       "length": 59,
       "roles": [
         "interface",
@@ -1160,7 +1160,7 @@
     {
       "design_id": "binder_001",
       "backbone_idx": 0,
-      "sequence": "NQNQLILLLLLILLLLKEGGGEIILLLLLLLILLLLEGGGEKLLLLLLLLLLLLLKELE",
+      "sequence": "NQYKLAVILVIALVILKEGPDEVILVILVAILVILVEGPSERILVAILVILIVLAKELK",
       "length": 59,
       "roles": [
         "interface",
@@ -1240,7 +1240,7 @@
     {
       "design_id": "binder_002",
       "backbone_idx": 0,
-      "sequence": "QENNIILLLLLLLVLLEEPGPKLILLLILLLLILLLKGGGQQILAIILLLVLLLLERIK",
+      "sequence": "QKNEVILAILVILAILEKPGDKLVILIVLIVLAILVKGPGDQVLAIVLILAVLIAEQVR",
       "length": 59,
       "roles": [
         "interface",
@@ -1320,7 +1320,7 @@
     {
       "design_id": "binder_009",
       "backbone_idx": 4,
-      "sequence": "QQQLLLLLLLLLLLLLKKLGGGKLLLLLLIILLLLLLEQGGGEELLLLLLLLLLIVLEK",
+      "sequence": "QNELIVLIVLAILVILKEVGPGKLIVLIAVLIAVLIVEQGPGEKLVIALVILVIAVLEK",
       "length": 59,
       "roles": [
         "interface",
@@ -1400,7 +1400,7 @@
     {
       "design_id": "binder_010",
       "backbone_idx": 4,
-      "sequence": "EQNLLLLLVALVALLLEKLGGGQLLLLLLLLVIIIILENGPGKRLVLVLLLLLVILLEE",
+      "sequence": "EQKLIVLIAMLVALIVEQLGPGQLIVLAILVAILVALKNGDPRQIALVILVLIAVLIEK",
       "length": 59,
       "roles": [
         "interface",
@@ -1480,7 +1480,7 @@
     {
       "design_id": "binder_025",
       "backbone_idx": 12,
-      "sequence": "QQNKLLLLLLLLLLILEEGPGKIVLLLLLLILLLLLKPGGEEILLLLLLLLLLLIEELK",
+      "sequence": "QNYKILVILVILAVILEKGDPKVILVILVIALVIALKPGSEKVLIALVILVILVAEKLR",
       "length": 59,
       "roles": [
         "interface",
@@ -1560,7 +1560,7 @@
     {
       "design_id": "binder_026",
       "backbone_idx": 12,
-      "sequence": "NNLNLLLLLILALVLLRKPGPRILIIALLILILLILEGPSEEALLLLVIILLLLLEELK",
+      "sequence": "NQLEIVLAIVLMIALIQKPGDQILVAVLIAVLIIVLEGSDEKALIVLAIVLIVLIEKIQ",
       "length": 59,
       "roles": [
         "interface",
@@ -1640,7 +1640,7 @@
     {
       "design_id": "binder_011",
       "backbone_idx": 5,
-      "sequence": "EQQQLLLLVLLLILILLLLLGGPQLLLLLLLLVLRLLLGGPKEQLLLLLLLLLLLLEKL",
+      "sequence": "EQNYLIVLAIVLAIVLAIVLGPDQLVILVLIVALQIVLGPDKEQLIVLAIVLIVLAEKI",
       "length": 59,
       "roles": [
         "interface",
@@ -1720,7 +1720,7 @@
     {
       "design_id": "binder_012",
       "backbone_idx": 5,
-      "sequence": "QQYELVLVLLLLVLLLIIMLGGGTILLVLLLLLLKILLDPGEQQLVLILILLLLVLKRI",
+      "sequence": "QNYELAIVLAILAILVAIFLGPSTVILAVLILVLKIVLDPGEDQLAIVLAILVLAIKQV",
       "length": 59,
       "roles": [
         "interface",
@@ -1800,7 +1800,7 @@
     {
       "design_id": "binder_029",
       "backbone_idx": 14,
-      "sequence": "QQEQLLLLLLLLILLLLLLLGGGKLLLLLLLLLLKLLLGPGKKLLLILIVLLLVLLKEL",
+      "sequence": "QNYQLVILVAILVAILVAILGPDRILVILAVILVKILVGPGKELIVALIVLAIVLIKEL",
       "length": 59,
       "roles": [
         "interface",
@@ -1880,7 +1880,7 @@
     {
       "design_id": "binder_030",
       "backbone_idx": 14,
-      "sequence": "QLYQILIIVLLILLLLVLLAGPGRIVLLILLLAIKILLGPGQRLLLAVVLLLLLLAEEV",
+      "sequence": "QLYNVLIAVLIAVLIVALIAGSPQVALIVLILAVKILVGPGQRLVIAVILIVLILMEKV",
       "length": 59,
       "roles": [
         "interface",
@@ -1960,7 +1960,7 @@
     {
       "design_id": "binder_005",
       "backbone_idx": 2,
-      "sequence": "QNQQLLLLLLLLLLLLLLLLGGGKLLLLILLLLLELLLGGGKKLLLLLLLLLLLLLKEL",
+      "sequence": "QENQILVILAVILVAILVILGPGKLVILAVILVLEILVGPGKRILVILAVLIALVIREV",
       "length": 59,
       "roles": [
         "interface",
@@ -2040,7 +2040,7 @@
     {
       "design_id": "binder_006",
       "backbone_idx": 2,
-      "sequence": "YLKKIILLLVLLILLLLLLLGGPEAVLLLVIILIEILIPGGEKLVLAILIIALLLIEKL",
+      "sequence": "YLENVILVIALVILIVLIVLGPDEAVLIVALVIVEILVPGDERLAIVLAIVALILVERI",
       "length": 59,
       "roles": [
         "interface",
@@ -2120,7 +2120,7 @@
     {
       "design_id": "binder_023",
       "backbone_idx": 11,
-      "sequence": "QQQQLLLILLLILILLLLLLGGGELLLLLLLLLLKIILGGGEELLLVLLLLLLLLLKEL",
+      "sequence": "QNEQILVAILVAILVLIAVLGPSKLVIALVILAVKIVLGPDEKILVAILVILAVILKEI",
       "length": 59,
       "roles": [
         "interface",
@@ -2200,7 +2200,7 @@
     {
       "design_id": "binder_024",
       "backbone_idx": 11,
-      "sequence": "NEQELILLLLLLLLALIALISPGKLLAALILVLVRLLVGGSKKLLALLLALVIVAVQEI",
+      "sequence": "NEQYLVLIVLILVLAIVALISGPKLVMALVIALVQLIAGPNKEILAILVALVIAVIDEV",
       "length": 59,
       "roles": [
         "interface",
@@ -2280,7 +2280,7 @@
     {
       "design_id": "binder_017",
       "backbone_idx": 8,
-      "sequence": "QQQKLLLLLLIILLLLLLLLPGPELLLLLILLLLKLVLGGGKELLLLLLLILLLVLEEL",
+      "sequence": "QNYKVLIVLIAVLIVLIVLIPGDELIVLIAVLIVKLAVGPGRELIVLAILVILIALEKL",
       "length": 59,
       "roles": [
         "interface",
@@ -2360,7 +2360,7 @@
     {
       "design_id": "binder_018",
       "backbone_idx": 8,
-      "sequence": "QNQQLILIILALLIVLLVIAGPGQLILLILVLILKLLLPPPEELIVLILLLLIVLLKQI",
+      "sequence": "QKNDLVIVLIALIVALIAVMGPGDLVIIVLAIVLKILIPGDEKLVALILVLIAVLIRDI",
       "length": 59,
       "roles": [
         "interface",

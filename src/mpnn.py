@@ -75,6 +75,14 @@ class ProteinMPNNDesigner:
                 role = "surface"
                 probs = self._get_surface_probs()
 
+            # Autoregressive repetition penalty across a 3-residue window
+            # Prevents homopolymer runs (e.g., LLLL) and alternating dipeptides (e.g., LILI)
+            for lookback, weight in [(1, 0.25), (2, 0.45), (3, 0.70)]:
+                if len(sequence) >= lookback:
+                    past_aa = sequence[-lookback]
+                    if past_aa in probs:
+                        probs[past_aa] *= weight
+
             # Sample amino acid with temperature
             aa = self._sample_with_temperature(probs, temperature)
             sequence.append(aa)
@@ -103,13 +111,13 @@ class ProteinMPNNDesigner:
     def _get_core_probs(self):
         """Hydrophobic packing core: non-polar side chains."""
         return {
-            "L": 0.35, "I": 0.25, "V": 0.20, "A": 0.15, "M": 0.05
+            "L": 0.28, "I": 0.24, "V": 0.22, "A": 0.16, "M": 0.06, "F": 0.04
         }
 
     def _get_surface_probs(self):
         """Solvent-exposed surface: charged and polar residues to prevent aggregation."""
         return {
-            "E": 0.25, "K": 0.25, "R": 0.15, "Q": 0.15, "D": 0.10, "S": 0.05, "T": 0.05
+            "E": 0.22, "K": 0.22, "R": 0.16, "Q": 0.16, "D": 0.12, "S": 0.06, "T": 0.06
         }
 
     def _get_interface_probs(self, target_partner_name):
