@@ -1,14 +1,14 @@
-# protein-binder-design
+# inverse-folding-benchmark
 
-**An inverse folding benchmark: how much of a protein's native sequence can a graph neural network recover from its backbone alone, once homologous structures are kept out of the test set?**
+**How much of a protein's native sequence can a graph neural network recover from its backbone alone, once homologous structures are kept out of the test set?**
 
 Trains a ProteinMPNN-style model on real X-ray crystal structures from the RCSB PDB and measures native sequence recovery on held-out backbones, against a random baseline, an amino-acid frequency baseline, an untrained network, and the published pretrained weights scored on the same residues.
 
-> **On the name.** This started as a de novo binder design project and the repository name reflects
-> that. It is now a benchmark. The design pipeline in `src/` still assembles scaffolds and decodes
-> sequences for a target, but nothing here validates that a design folds or binds, and the earlier
-> claims that it did were not real measurements (see section 3). The benchmark is the part with
-> evidence behind it.
+> **History.** This began as `protein-binder-design`, a de novo binder project whose reported
+> results were not real measurements (see section 3). It is now a benchmark. The design code in
+> `src/` still assembles scaffolds and decodes sequences for a target, but nothing here validates
+> that a design folds or binds. Old links to `protein-binder-design` still resolve, since GitHub
+> redirects renamed repositories.
 
 ---
 
@@ -106,7 +106,7 @@ Validating a designed binder needs structure prediction (AlphaFold2, ESMFold) an
 ## 4. Repository Structure
 
 ```
-protein-binder-design/
+inverse-folding-benchmark/
 ├── data/
 │   ├── 4ZQK.pdb                # Human PD-1 / PD-L1 crystal complex
 │   ├── 4Z18.pdb                # Apo Human PD-L1 crystal structure
@@ -144,8 +144,8 @@ protein-binder-design/
 
 ### 1. Installation
 ```bash
-git clone https://github.com/Aditya-galaxy/protein-binder-design.git
-cd protein-binder-design
+git clone https://github.com/Aditya-galaxy/inverse-folding-benchmark.git
+cd inverse-folding-benchmark
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
