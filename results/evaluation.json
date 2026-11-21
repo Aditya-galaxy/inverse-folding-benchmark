@@ -1,0 +1,144 @@
+{
+  "n_test_structures": 7,
+  "decoding_orders_per_structure": 10,
+  "note": "Re-score the held-out backbones with intervals that respect how few of them there are.\n\nThree things the training script's single number does not show:\n\n1. **The unit of evidence is the structure, not the residue.** Residues inside one protein share a\n   fold, a composition and a crystallography run, so 850 residues from 7 proteins are nowhere near\n   850 independent observations. Intervals here resample structures.\n2. **Recovery is a random draw.** ProteinMPNN picks a new decoding order on every forward pass, so\n   one call gives one sample. Each model is scored over several orders and the spread reported.\n3. **The pretrained model's score is not held out.** It was trained on the PDB, so test structures\n   deposited before its training cutoff were almost certainly in its training set. Those are\n   flagged rather than compared as if they were unseen.",
+  "trained_on_29_structures": {
+    "recovery": 0.29208752941176475,
+    "ci_over_structures": [
+      0.23481972693786038,
+      0.3618282485875707
+    ],
+    "mean_sd_across_decoding_orders": 0.006893866862442963,
+    "per_structure": [
+      {
+        "pdb_id": "2AZ8",
+        "residues": 99,
+        "recovery_mean": 0.47979797979797983,
+        "recovery_sd_over_orders": 0.010350455319151118,
+        "loss_mean": 1.6974524141562106
+      },
+      {
+        "pdb_id": "2EHG",
+        "residues": 149,
+        "recovery_mean": 0.251006711409396,
+        "recovery_sd_over_orders": 0.006151108315376968,
+        "loss_mean": 2.6641283892945156
+      },
+      {
+        "pdb_id": "1LJN",
+        "residues": 129,
+        "recovery_mean": 0.3496124031007752,
+        "recovery_sd_over_orders": 0.007313163668260935,
+        "loss_mean": 1.9787029887354652
+      },
+      {
+        "pdb_id": "5DL9",
+        "residues": 129,
+        "recovery_mean": 0.3170542635658915,
+        "recovery_sd_over_orders": 0.010657152778967071,
+        "loss_mean": 1.8596682289774105
+      },
+      {
+        "pdb_id": "6MAA",
+        "residues": 78,
+        "recovery_mean": 0.21794871794871798,
+        "recovery_sd_over_orders": 2.7755575615628914e-17,
+        "loss_mean": 3.0056031447190508
+      },
+      {
+        "pdb_id": "4D3R",
+        "residues": 140,
+        "recovery_mean": 0.1842857142857143,
+        "recovery_sd_over_orders": 0.004285714285714287,
+        "loss_mean": 2.765837184361049
+      },
+      {
+        "pdb_id": "6CKS",
+        "residues": 126,
+        "recovery_mean": 0.27440000000000003,
+        "recovery_sd_over_orders": 0.009499473669630326,
+        "loss_mean": 2.1857127929687503
+      }
+    ]
+  },
+  "pretrained_full_pdb": {
+    "recovery": 0.5628009411764706,
+    "ci_over_structures": [
+      0.5264744429882043,
+      0.5923816435432231
+    ],
+    "mean_sd_across_decoding_orders": 0.01537814525744258,
+    "per_structure": [
+      {
+        "pdb_id": "2AZ8",
+        "residues": 99,
+        "recovery_mean": 0.4828282828282829,
+        "recovery_sd_over_orders": 0.009896928253669416,
+        "loss_mean": 1.6574808294122867
+      },
+      {
+        "pdb_id": "2EHG",
+        "residues": 149,
+        "recovery_mean": 0.5899328859060404,
+        "recovery_sd_over_orders": 0.013236968404910078,
+        "loss_mean": 1.3384614061189177
+      },
+      {
+        "pdb_id": "1LJN",
+        "residues": 129,
+        "recovery_mean": 0.6178294573643411,
+        "recovery_sd_over_orders": 0.01431487233536389,
+        "loss_mean": 1.258140185452247
+      },
+      {
+        "pdb_id": "5DL9",
+        "residues": 129,
+        "recovery_mean": 0.5937984496124031,
+        "recovery_sd_over_orders": 0.013953488372093,
+        "loss_mean": 1.2465355096861372
+      },
+      {
+        "pdb_id": "6MAA",
+        "residues": 78,
+        "recovery_mean": 0.5243589743589743,
+        "recovery_sd_over_orders": 0.01940095634669431,
+        "loss_mean": 1.6348294869447368
+      },
+      {
+        "pdb_id": "4D3R",
+        "residues": 140,
+        "recovery_mean": 0.5164285714285713,
+        "recovery_sd_over_orders": 0.01751092953161608,
+        "loss_mean": 1.4829756164550782
+      },
+      {
+        "pdb_id": "6CKS",
+        "residues": 126,
+        "recovery_mean": 0.5807999999999999,
+        "recovery_sd_over_orders": 0.019332873557751293,
+        "loss_mean": 1.4626203979492187
+      }
+    ]
+  },
+  "pretraining_overlap": {
+    "cutoff": "2021-08",
+    "deposition_years": {
+      "2AZ8": 2005,
+      "2EHG": 2007,
+      "1LJN": 2002,
+      "5DL9": 2015,
+      "6MAA": 2018,
+      "4D3R": 2014,
+      "6CKS": 2018
+    },
+    "likely_in_pretraining_set": [
+      "1LJN",
+      "2AZ8",
+      "2EHG",
+      "4D3R",
+      "5DL9",
+      "6CKS",
+      "6MAA"
+    ]
+  }
+}

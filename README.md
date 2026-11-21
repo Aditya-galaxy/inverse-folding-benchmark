@@ -31,22 +31,47 @@ The structures are split deterministically (`seed=42`) into:
 
 ## 2. Benchmark Results on Held-out Crystal Backbones
 
-All models and baselines were evaluated on the **exact same 7 held-out test crystal backbones** (850 residues).
+All models and baselines were evaluated on the **same 7 held-out crystal backbones** (850 residues).
 
-| Model / Baseline | Native Sequence Recovery (%) | Perplexity | Notes |
+| Model / Baseline | Recovery | 95% CI over structures | Perplexity |
 |---|---|---|---|
-| **Random Guessing** | 5.00% | 20.00 | Uniform $1/20$ chance |
-| **Frequency Baseline** | 8.94% | — | Marginal training set distribution (Leu majority) |
-| **Untrained ProteinMPNN** | 7.07% | 39.38 | Random weights before optimization |
-| **Trained ProteinMPNN (29 Backbones)** | **29.21%** | **9.98** | Trained for 40 epochs on 4,087 residues |
-| **Pretrained ProteinMPNN (Full PDB)** | **57.01%** | **4.08** | Dauparas et al. (*Science* 2022) |
+| Random guessing | 5.00% | — | 20.00 |
+| Frequency baseline (always Leu) | 8.94% | — | — |
+| Untrained ProteinMPNN | 7.07% | — | 39.38 |
+| **Trained here (29 structures)** | **29.21%** | **[23.5%, 36.2%]** | 9.98 |
+| Pretrained, full PDB (Dauparas et al. 2022) | 56.28% | [52.6%, 59.2%] | 4.08 |
+
+**Seven structures is very little evidence, and the interval says so.** Residues inside one protein
+share a fold, a composition and a crystallography run, so 850 residues are nowhere near 850
+independent observations. The intervals above resample *structures*, which is the real unit, and
+per-structure recovery for the trained model ranges from 18.4% (`4D3R`) to 48.0% (`2AZ8`).
+
+**The pretrained row is not a held-out comparison.** ProteinMPNN's published weights were trained on
+the PDB up to roughly mid-2021. Every one of these seven structures was deposited between 2002 and
+2018, so all seven were almost certainly in its training set. Its score is a training-set number
+placed beside a genuine held-out one, and the gap between 29% and 56% is correspondingly overstated.
+It is kept in the table as a ceiling reference, not as a fair baseline.
+
+**Recovery is an average, not a single number.** ProteinMPNN draws a new decoding order on every
+forward pass, so one evaluation is one sample. Each figure above averages 10 decoding orders per
+structure; the spread across orders is 0.69 points for the trained model and 1.54 for the pretrained
+one, which is why a single-draw number can move by a point or so between runs.
+
+Reproduce with `python src/evaluate.py`, which writes `results/evaluation.json` including
+per-structure recovery and deposition years.
 
 ![Benchmark Comparison](results/benchmark_comparison.png)
 
-### Key Biological Findings
-1. **Conformational Pivots Learn First:** At sharp loop hinges and turn transitions, native sequence recovery for **Glycine and Proline jumps to 70.87%** (vs. 0.0% untrained). Backbone dihedral angles ($\phi, \psi$) geometrically demand Glycine (absence of $C_\beta$) or Proline (fixed pyrrolidine ring), which the graph message-passing layers identify almost immediately.
-2. **Hydrophobic Core Packing:** Buried core residues (Val, Ile, Leu, Met, Phe, Trp, Tyr) reach **25.72% recovery** (from 0.0% untrained). The model learns that high-density spatial coordinate neighborhoods require non-polar van der Waals packing.
-3. **Perplexity Drop:** Test cross-entropy perplexity drops 4-fold from **39.38 down to 9.98** within 40 epochs of training on fewer than 30 structures.
+### What the model learns first
+1. **Conformational pivots.** Recovery for glycine and proline reaches **70.9%**, against 0% untrained.
+   Backbone dihedrals geometrically demand glycine (no C-beta) or proline (fixed ring), and the
+   message-passing layers pick this up almost immediately.
+2. **Hydrophobic core packing.** Buried residues (V, I, L, M, F, W, Y) reach **25.7%**, from 0%
+   untrained: dense neighbourhoods call for non-polar packing.
+3. **Perplexity.** Held-out perplexity falls from 39.4 to 10.0 in 40 epochs on fewer than 30 structures.
+
+These three come from a single training run on 7 test structures and are offered as observations,
+not as established facts about what inverse folding models learn.
 
 ![Training Curves](results/mpnn_training_curves.png)
 ![Biochemical Class Recovery](results/biochemical_class_recovery.png)
@@ -74,6 +99,7 @@ protein-binder-design/
 ├── src/
 │   ├── query_pdb.py            # Automated RCSB PDB structure query & download
 │   ├── train_mpnn.py           # Real ProteinMPNN training & benchmark pipeline
+│   ├── evaluate.py             # Held-out scoring with intervals over structures
 │   ├── target.py               # Target PDB parsing & epitope detection
 │   ├── backbone.py             # 3D mini-protein scaffold generation & SE(3) docking
 │   ├── mpnn.py                 # Sequence design & inverse folding
@@ -86,6 +112,7 @@ protein-binder-design/
 │   ├── benchmark_comparison.png       # Baselines vs Trained vs Pretrained
 │   ├── biochemical_class_recovery.png # Recovery by microenvironment
 │   ├── training_summary.json          # Machine-readable benchmark report
+│   ├── evaluation.json                # Per-structure recovery, intervals, deposition years
 │   ├── mpnn_trained_weights.pt        # Trained PyTorch model weights
 │   └── designs/                       # Candidate sequences (not validated, see section 3)
 ├── tests/
