@@ -1,8 +1,8 @@
 # protein-binder-design
 
-An automated computational platform for **inverse folding sequence design** and **de novo targeted mini-protein binder generation**.
+**How much of a protein's native sequence can a graph neural network recover from its backbone alone?**
 
-Evaluates how graph neural networks (ProteinMPNN) learn sequence-structure mappings directly from experimental high-resolution crystal structures, benchmarks recovery on held-out protein backbones, and deploys the model to design targeted mini-protein binders against human **PD-L1** (PDB: `4ZQK`).
+Trains a ProteinMPNN-style inverse folding model on real X-ray crystal structures from the RCSB PDB and benchmarks native sequence recovery on held-out backbones, against a random baseline, an amino-acid frequency baseline, an untrained network, and the published pretrained weights run on the same held-out residues.
 
 ---
 
@@ -53,46 +53,13 @@ All models and baselines were evaluated on the **exact same 7 held-out test crys
 
 ---
 
-## 3. Targeted Mini-Protein Binder Design (Human PD-L1)
+## 3. What this does not do
 
-The trained model is integrated into a complete de novo binder design pipeline targeting the **Human PD-1 / PD-L1 interface** (`PDB: 4ZQK`):
+The trained model designs sequences for a backbone. It does **not** predict whether those sequences fold, or whether they bind anything.
 
-```
-                      1. Target Structure & Hotspot Epitope
-                  Load target crystal structure (PD-L1, PDB: 4ZQK)
-                Identify key binding residues (Tyr56, Met115, Tyr123, Lys124)
-                                      │
-                                      ▼
-                      2. De Novo Backbone Scaffolding
-             Generate 3D 3-helix bundle backbones (55–65 residues)
-                 with SE(3) rotation & epitope-targeted approach
-                                      │
-                                      ▼
-                      3. Sequence Design (Inverse Folding)
-              ProteinMPNN graph neural network message-passing
-               decoding complementary hydrophobic, polar & turn residues
-                                      │
-                                      ▼
-                      4. Biophysical Filtering & Scoring
-             • Folding confidence (pLDDT ≥ 80.0)
-             • Interface predicted TM-score (ipTM ≥ 0.70)
-             • Buried Surface Area (ΔSASA ≥ 800 Å²)
-             • Shape Complementarity (Sc) & Hydrogen bonding
-                                      │
-                                      ▼
-                      5. Top Lead Export & 3D Visualization
-             Export candidate PDB complexes, contact heatmaps, and PyMOL scripts
-```
+Validating a designed binder needs structure prediction (AlphaFold2, ESMFold) and ultimately wet-lab binding assays. None of that is run here, so no folding confidence (pLDDT), interface score (ipTM) or binding claim is reported. `src/validation.py` computes geometric descriptors only (contact counts, buried area estimates); they are not folding or binding predictions and should not be read as any.
 
-### PD-L1 Campaign Benchmark
-
-| Design ID | pLDDT | ipTM | ΔSASA (Å²) | Shape Compl. ($S_c$) | Status |
-|---|---|---|---|---|---|
-| **`binder_003`** | **93.6** | **0.731** | **889.0** | **0.662** | **✓ PASS (Lead)** |
-| **`binder_004`** | 93.6 | 0.731 | 889.0 | 0.662 | **✓ PASS** |
-| **`binder_015`** | 93.6 | 0.731 | 889.0 | 0.662 | **✓ PASS** |
-
----
+An earlier version of this README reported pLDDT and ipTM values for designed PD-L1 binders. Those numbers came from hand-written formulas, not from any structure predictor, and have been removed.
 
 ## 4. Repository Structure
 
@@ -110,7 +77,7 @@ protein-binder-design/
 │   ├── target.py               # Target PDB parsing & epitope detection
 │   ├── backbone.py             # 3D mini-protein scaffold generation & SE(3) docking
 │   ├── mpnn.py                 # Sequence design & inverse folding
-│   ├── validation.py           # Biophysical scoring (pLDDT, ipTM, ΔSASA, Sc)
+│   ├── validation.py           # Geometric descriptors only (see section 3)
 │   └── pipeline.py             # Campaign orchestration & PDB export
 ├── vendor/
 │   └── ProteinMPNN-main/       # Dauparas et al. ProteinMPNN architecture
@@ -120,7 +87,7 @@ protein-binder-design/
 │   ├── biochemical_class_recovery.png # Recovery by microenvironment
 │   ├── training_summary.json          # Machine-readable benchmark report
 │   ├── mpnn_trained_weights.pt        # Trained PyTorch model weights
-│   └── pdl1_campaign/                 # Lead binder complexes and PyMOL scripts
+│   └── designs/                       # Candidate sequences (not validated, see section 3)
 ├── tests/
 │   └── test_pipeline.py        # Automated unit and integration tests
 ├── requirements.txt
@@ -145,19 +112,14 @@ pip install -r requirements.txt
 python src/train_mpnn.py
 ```
 
-### 3. Run Default PD-L1 Design Campaign
+### 3. Design sequences for a target backbone
 ```bash
 python scripts/run_design.py --num-backbones 15 --seqs-per-backbone 2
 ```
-
-### 4. 3D Visualization in PyMOL
-```bash
-pymol results/pdl1_campaign/view_binder_complex.pml
-```
+This emits candidate sequences and geometric descriptors. It does not validate them: see section 3.
 
 ---
 
 ## Citations & References
 * **ProteinMPNN:** Dauparas et al., "Robust deep learning–based protein sequence design using ProteinMPNN", *Science* 378, 49–56 (2022).
-* **RFdiffusion:** Watson et al., "De novo design of protein structure and function with RFdiffusion", *Nature* 620, 1089–1100 (2023).
 * **Human PD-1 / PD-L1 Interface:** Zak et al., "Structure of the Complex of Human Programmed Death 1, PD-1, and Its Ligand, PD-L1", *Structure* 23, 2341–2348 (2015).
