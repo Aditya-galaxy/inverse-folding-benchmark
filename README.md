@@ -1,14 +1,20 @@
 # protein-binder-design
 
-**How much of a protein's native sequence can a graph neural network recover from its backbone alone?**
+**An inverse folding benchmark: how much of a protein's native sequence can a graph neural network recover from its backbone alone, once homologous structures are kept out of the test set?**
 
-Trains a ProteinMPNN-style inverse folding model on real X-ray crystal structures from the RCSB PDB and benchmarks native sequence recovery on held-out backbones, against a random baseline, an amino-acid frequency baseline, an untrained network, and the published pretrained weights run on the same held-out residues.
+Trains a ProteinMPNN-style model on real X-ray crystal structures from the RCSB PDB and measures native sequence recovery on held-out backbones, against a random baseline, an amino-acid frequency baseline, an untrained network, and the published pretrained weights scored on the same residues.
+
+> **On the name.** This started as a de novo binder design project and the repository name reflects
+> that. It is now a benchmark. The design pipeline in `src/` still assembles scaffolds and decodes
+> sequences for a target, but nothing here validates that a design folds or binds, and the earlier
+> claims that it did were not real measurements (see section 3). The benchmark is the part with
+> evidence behind it.
 
 ---
 
-## 1. Real Empirical Training & Benchmarking
+## 1. Training and Benchmarking on Real Structures
 
-Instead of relying on heuristic sequence decodings, this repository trains and benchmarks **ProteinMPNN** on real high-resolution X-ray crystal structures queried directly from the **RCSB Protein Data Bank (PDB)**.
+This repository trains and benchmarks **ProteinMPNN** on high-resolution X-ray crystal structures queried directly from the **RCSB Protein Data Bank (PDB)**.
 
 ### Dataset Curation & Query
 Structures were queried programmatically via the RCSB Search API (`src/query_pdb.py`):
