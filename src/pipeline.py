@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from .target import TargetHandler
 from .backbone import BackboneGenerator
 from .mpnn import ProteinMPNNDesigner
-from .validation import ComplexValidator
+from .geometry import interface_geometry, rank_key
 
 
 class DeNovoBinderPipeline:
@@ -25,7 +25,6 @@ class DeNovoBinderPipeline:
         self.target_handler = TargetHandler(target_pdb, target_chain=target_chain)
         self.backbone_gen = BackboneGenerator(seed=seed)
         self.mpnn_designer = ProteinMPNNDesigner(seed=seed)
-        self.validator = ComplexValidator()
 
     def run_campaign(
         self,
@@ -85,10 +84,8 @@ class DeNovoBinderPipeline:
                     scaffold, target_ca, target_res_names, temperature=temp
                 )
 
-                # Validate complex
-                metrics = self.validator.evaluate_complex(
-                    scaffold, target_ca, hotspot_ca, seq, roles
-                )
+                # Measure the interface. This describes an arrangement; it does not validate it.
+                metrics = interface_geometry(scaffold.ca_coords, target_ca, hotspot_ca)
 
                 candidates.append({
                     "design_id": f"binder_{candidate_id:03d}",
@@ -101,19 +98,21 @@ class DeNovoBinderPipeline:
                 })
                 candidate_id += 1
 
-        # 3. Rank Candidates by Composite Score
-        candidates.sort(key=lambda c: c["metrics"]["composite_score"], reverse=True)
+        # 3. Order for inspection. Not a quality ranking: see geometry.rank_key.
+        candidates.sort(key=lambda c: rank_key(c["metrics"]))
         top_lead = candidates[0]
 
         # 4. Save Summary Table
-        print("\n" + "=" * 80)
-        print(f"{'Design ID':<12} | {'pLDDT':<7} | {'ipTM':<7} | {'ΔSASA (Å²)':<12} | {'Sc':<6} | {'Score':<7} | {'Passed?'}")
-        print("=" * 80)
+        print("\n" + "=" * 78)
+        print(f"{'Design ID':<12} | {'Interface res':<13} | {'Hotspots':<9} | {'Min CA (A)':<10} | {'Clashes'}")
+        print("=" * 78)
         for c in candidates[:8]:
             m = c["metrics"]
-            status = "✓ PASS" if m["passed_filters"] else "FAIL"
-            print(f"{c['design_id']:<12} | {m['plddt']:<7.1f} | {m['iptm']:<7.3f} | {m['delta_sasa']:<12.1f} | {m['shape_complementarity']:<6.3f} | {m['composite_score']:<7.2f} | {status}")
-        print("=" * 80)
+            hot = f"{m.get('hotspots_engaged', 0)}/{m.get('hotspots_total', 0)}"
+            print(f"{c['design_id']:<12} | {m['interface_residues']:<13d} | {hot:<9} | "
+                  f"{m['min_ca_distance_angstrom']:<10.2f} | {m['ca_clashes']}")
+        print("=" * 78)
+        print("Geometry only. No folding or binding prediction is made: see README section 3.")
 
         # 5. Export Artifacts
         self._export_complex_pdb(top_lead, os.path.join(output_dir, "top_lead_complex.pdb"))
@@ -139,7 +138,11 @@ class DeNovoBinderPipeline:
 
         print(f"\nTop Lead Candidate: {top_lead['design_id']}")
         print(f"  Sequence: {top_lead['sequence']}")
-        print(f"  pLDDT: {top_lead['metrics']['plddt']} | ipTM: {top_lead['metrics']['iptm']} | ΔSASA: {top_lead['metrics']['delta_sasa']} Å²")
+        _m = top_lead["metrics"]
+        print(f"  Interface residues: {_m['interface_residues']} | "
+              f"hotspots engaged: {_m.get('hotspots_engaged', 0)}/{_m.get('hotspots_total', 0)} | "
+              f"closest CA pair: {_m['min_ca_distance_angstrom']:.2f} A | clashes: {_m['ca_clashes']}")
+        print("  Whether it folds or binds is unknown and untested.")
         print(f"\nGenerated files in '{output_dir}/':")
         print(f"  • top_lead_complex.pdb")
         print(f"  • binder_contact_map.png")
@@ -185,7 +188,7 @@ class DeNovoBinderPipeline:
                     ("O", scaffold.o_coords[i], "O"),
                 ]
                 for a_name, coord, elem in atoms:
-                    line = f"ATOM  {atom_num:5d}  {a_name:<4s}{res_3:>3s} B{res_id:4d}    {coord[0]:8.3f}{coord[1]:8.3f}{coord[2]:8.3f}  1.00 {candidate['metrics']['plddt']:5.2f}           {elem:>2s}\n"
+                    line = f"ATOM  {atom_num:5d}  {a_name:<4s}{res_3:>3s} B{res_id:4d}    {coord[0]:8.3f}{coord[1]:8.3f}{coord[2]:8.3f}  1.00  0.00           {elem:>2s}\n"
                     f.write(line)
                     atom_num += 1
 

@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from src.target import TargetHandler
 from src.backbone import BackboneGenerator
 from src.mpnn import ProteinMPNNDesigner
-from src.validation import ComplexValidator
+from src.geometry import interface_geometry, rank_key
 from src.pipeline import DeNovoBinderPipeline
 
 
@@ -53,22 +53,43 @@ def test_mpnn_designer():
     assert all(aa in "ACDEFGHIKLMNPQRSTVWY" for aa in seq)
 
 
-def test_validator():
-    validator = ComplexValidator()
+def test_interface_geometry_is_measured_not_invented():
+    """Every value must be a count or a distance derived from the coordinates given."""
     gen = BackboneGenerator(seed=42)
     scaffold = gen.generate_three_helix_bundle()
     target_ca = np.random.randn(30, 3) * 15.0
     hotspot_ca = target_ca[:5]
 
-    seq = "A" * scaffold.length
-    roles = ["core"] * 20 + ["surface"] * 20 + ["interface"] * (scaffold.length - 40)
+    g = interface_geometry(scaffold.ca_coords, target_ca, hotspot_ca)
 
-    metrics = validator.evaluate_complex(scaffold, target_ca, hotspot_ca, seq, roles)
-    assert "plddt" in metrics
-    assert "iptm" in metrics
-    assert "delta_sasa" in metrics
-    assert 0.0 <= metrics["iptm"] <= 1.0
-    assert 0.0 <= metrics["plddt"] <= 100.0
+    # No folding or binding prediction may reappear under any name.
+    for banned in ("plddt", "iptm", "delta_sasa", "shape_complementarity", "composite_score",
+                   "passed_filters", "confidence", "score"):
+        assert banned not in g, f"{banned} is not computable here and must not be reported"
+
+    # The distance is the real minimum over the pairwise matrix.
+    expected = np.linalg.norm(
+        scaffold.ca_coords[:, None, :] - target_ca[None, :, :], axis=2).min()
+    assert np.isclose(g["min_ca_distance_angstrom"], expected)
+    assert 0 <= g["interface_residues"] <= scaffold.length
+    assert 0 <= g["hotspots_engaged"] <= g["hotspots_total"] == len(hotspot_ca)
+    assert g["ca_clashes"] >= 0
+
+
+def test_moving_chains_apart_empties_the_interface():
+    gen = BackboneGenerator(seed=0)
+    scaffold = gen.generate_three_helix_bundle()
+    far = scaffold.ca_coords + 500.0
+    g = interface_geometry(scaffold.ca_coords, far)
+    assert g["interface_residues"] == 0 and g["ca_clashes"] == 0
+    assert g["min_ca_distance_angstrom"] > 100.0
+
+
+def test_exported_pdb_carries_no_invented_confidence():
+    """The B-factor column previously held a fabricated pLDDT, where a viewer would read it as real."""
+    src = open("src/pipeline.py").read()
+    assert "plddt" not in src.lower()
+    assert "1.00  0.00" in src
 
 
 def test_end_to_end_small():

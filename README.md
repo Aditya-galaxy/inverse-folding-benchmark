@@ -91,9 +91,11 @@ These come from one training run and are observations, not established facts.
 
 The trained model designs sequences for a backbone. It does **not** predict whether those sequences fold, or whether they bind anything.
 
-Validating a designed binder needs structure prediction (AlphaFold2, ESMFold) and ultimately wet-lab binding assays. None of that is run here, so no folding confidence (pLDDT), interface score (ipTM) or binding claim is reported. `src/validation.py` computes geometric descriptors only (contact counts, buried area estimates); they are not folding or binding predictions and should not be read as any.
+Validating a designed binder needs structure prediction (AlphaFold2, ESMFold) and ultimately wet-lab binding assays. None of that is run here, so no folding confidence, interface score or binding claim is reported.
 
-An earlier version of this README reported pLDDT and ipTM values for designed PD-L1 binders. Those numbers came from hand-written formulas, not from any structure predictor, and have been removed.
+`src/geometry.py` measures the interface and nothing more: the closest C-alpha pair, how many residues fall within 8 Å of the target, how many named hotspots are engaged, and how many C-alpha pairs are too close to be physical. Every value is a count or a distance taken straight from the coordinates. Candidates are ordered for inspection, not scored, and the descriptors are deliberately left separate rather than combined into one number that would invite being read as quality.
+
+**What was removed.** An earlier `src/validation.py` reported pLDDT, ipTM, buried surface area and shape complementarity for designed PD-L1 binders, and the README presented them as campaign results. None were computed: pLDDT and ipTM came from hand-written formulas with no structure predictor behind them, buried area was a residue count times a constant, and shape complementarity was a fitted guess. The exported PDB files also carried the invented pLDDT in the B-factor column, where a viewer colouring by B-factor would read it as genuine confidence. The module, the numbers and the B-factor are gone, and `tests/test_pipeline.py` now fails if any of them returns.
 
 ## 4. Repository Structure
 
@@ -112,7 +114,7 @@ protein-binder-design/
 │   ├── target.py               # Target PDB parsing & epitope detection
 │   ├── backbone.py             # 3D mini-protein scaffold generation & SE(3) docking
 │   ├── mpnn.py                 # Sequence design & inverse folding
-│   ├── validation.py           # Geometric descriptors only (see section 3)
+│   ├── geometry.py             # Measured interface descriptors only (see section 3)
 │   └── pipeline.py             # Campaign orchestration & PDB export
 ├── vendor/
 │   └── ProteinMPNN-main/       # Dauparas et al. ProteinMPNN architecture
