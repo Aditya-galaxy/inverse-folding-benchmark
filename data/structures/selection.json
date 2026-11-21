@@ -1,0 +1,115 @@
+{
+  "query": {
+    "query": {
+      "type": "group",
+      "logical_operator": "and",
+      "nodes": [
+        {
+          "type": "terminal",
+          "service": "text",
+          "parameters": {
+            "attribute": "exptl.method",
+            "operator": "exact_match",
+            "value": "X-RAY DIFFRACTION"
+          }
+        },
+        {
+          "type": "terminal",
+          "service": "text",
+          "parameters": {
+            "attribute": "rcsb_entry_info.resolution_combined",
+            "operator": "less_or_equal",
+            "value": 2.0
+          }
+        },
+        {
+          "type": "terminal",
+          "service": "text",
+          "parameters": {
+            "attribute": "rcsb_entry_info.polymer_entity_count_protein",
+            "operator": "equals",
+            "value": 1
+          }
+        },
+        {
+          "type": "terminal",
+          "service": "text",
+          "parameters": {
+            "attribute": "rcsb_entry_info.polymer_entity_count_nucleic_acid",
+            "operator": "equals",
+            "value": 0
+          }
+        },
+        {
+          "type": "terminal",
+          "service": "text",
+          "parameters": {
+            "attribute": "rcsb_entry_info.deposited_polymer_monomer_count",
+            "operator": "range",
+            "value": {
+              "from": 80,
+              "to": 200
+            }
+          }
+        }
+      ]
+    },
+    "return_type": "entry",
+    "request_options": {
+      "return_all_hits": true
+    }
+  },
+  "matched_entries": 17230,
+  "seed": 42,
+  "requested": 50,
+  "downloaded": 47,
+  "pdb_ids": [
+    "1AJV",
+    "1G5T",
+    "1GF9",
+    "1HI3",
+    "1I2H",
+    "1L64",
+    "1LJN",
+    "1T18",
+    "1WHI",
+    "1WRM",
+    "1ZNL",
+    "2APV",
+    "2AZ8",
+    "2C02",
+    "2EFN",
+    "2EHG",
+    "2HSH",
+    "2PWC",
+    "2XV2",
+    "3D77",
+    "3ERS",
+    "3RJP",
+    "3TRL",
+    "4D3R",
+    "4EER",
+    "4F0V",
+    "4GDZ",
+    "4I39",
+    "4JV6",
+    "4JY7",
+    "4O6U",
+    "4ZBM",
+    "5DL9",
+    "5EM1",
+    "5ENI",
+    "5IS1",
+    "5KEE",
+    "6AHL",
+    "6CKS",
+    "6EEY",
+    "6KV0",
+    "6MAA",
+    "6V0X",
+    "6VSI",
+    "7IC2",
+    "7RTS",
+    "7YL2"
+  ]
+}
