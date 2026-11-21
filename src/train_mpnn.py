@@ -68,15 +68,60 @@ def load_dataset(structures_dir, min_len=70, max_len=250):
     return dataset
 
 
-def split_dataset(dataset, test_fraction=0.20, seed=42):
-    """Deterministic train / test split by PDB structure."""
+def cluster_by_similarity(dataset, k=5, threshold=0.3):
+    """Group structures whose sequences resemble each other, by single-linkage on 5-mer Jaccard.
+
+    The PDB is highly redundant: the same protein appears many times as mutants, different ligands
+    or better resolutions. A random split therefore puts near-identical sequences on both sides and
+    the model can simply recall them. Measured on an earlier random split here, 30 of 52 test
+    structures shared more than half their 5-mers with a training structure and 13 shared all of
+    them, which inflated held-out recovery to the point of beating the published full-PDB model.
+
+    This is a cheap proxy for sequence identity, not a substitute for proper clustering (MMseqs2 or
+    CD-HIT at 30% identity); it is deliberately conservative, since over-merging only costs data."""
+    names = [d["name"] for d in dataset]
+    kmers = {d["name"]: {d["seq"][i:i + k] for i in range(len(d["seq"]) - k + 1)} for d in dataset}
+    parent = {n: n for n in names}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for a in range(len(names)):
+        ka = kmers[names[a]]
+        for b in range(a + 1, len(names)):
+            kb = kmers[names[b]]
+            if ka and kb and len(ka & kb) / len(ka | kb) >= threshold:
+                ra, rb = find(names[a]), find(names[b])
+                if ra != rb:
+                    parent[rb] = ra
+
+    clusters = {}
+    for n in names:
+        clusters.setdefault(find(n), []).append(n)
+    return list(clusters.values())
+
+
+def split_dataset(dataset, val_fraction=0.15, test_fraction=0.15, seed=42):
+    """Deterministic three-way split by PDB structure.
+
+    Validation exists so the test set can be scored once, at the end. An earlier version of this
+    script evaluated the test set every epoch and then reported the final number from it, which
+    means the test set had been looked at forty times before it was published."""
+    clusters = cluster_by_similarity(dataset)
     rng = random.Random(seed)
-    shuffled = list(dataset)
-    rng.shuffle(shuffled)
-    n_test = max(1, int(len(shuffled) * test_fraction))
-    test_set = shuffled[:n_test]
-    train_set = shuffled[n_test:]
-    return train_set, test_set
+    rng.shuffle(clusters)
+    by_name = {d["name"]: d for d in dataset}
+    n = len(dataset)
+    want_test, want_val = n * test_fraction, n * val_fraction
+
+    test, val, train = [], [], []
+    for group in clusters:                      # whole clusters only: homologs never straddle a split
+        target = test if len(test) < want_test else (val if len(val) < want_val else train)
+        target.extend(by_name[name] for name in group)
+    return train, val, test
 
 
 def compute_metrics(model, data_items, device="cpu", batch_size=4):
@@ -137,6 +182,42 @@ def compute_metrics(model, data_items, device="cpu", batch_size=4):
     }
 
 
+def compute_metrics_multi(model, data_items, device="cpu", n_orders=10, seed=0):
+    """compute_metrics averaged over several decoding orders.
+
+    ProteinMPNN draws a new decoding order on every forward pass, so a single call is one sample,
+    not the model's expected recovery. Reported numbers average `n_orders` draws."""
+    torch.manual_seed(seed)
+    runs = [compute_metrics(model, data_items, device=device) for _ in range(n_orders)]
+    out = {k: float(np.mean([r[k] for r in runs])) for k in ("loss", "perplexity", "recovery")}
+    out["recovery_sd_over_orders"] = float(np.std([r["recovery"] for r in runs]))
+    out["class_recovery"] = {c: float(np.mean([r["class_recovery"][c] for r in runs])) for c in AA_CLASSES}
+    out["tokens"] = runs[0]["tokens"]
+    out["n_orders"] = n_orders
+    return out
+
+
+def recovery_ci_over_structures(model, items, device="cpu", n_orders=10, n_boot=10000, seed=0):
+    """Point estimate and 95% interval, resampling structures rather than residues.
+
+    Residues within one protein share a fold, a composition and a crystallography run, so they are
+    not independent observations; the structure is the unit of evidence."""
+    torch.manual_seed(seed)
+    per = []
+    for item in items:
+        runs = [compute_metrics(model, [item], device=device) for _ in range(n_orders)]
+        per.append({"pdb_id": item.get("name", "?"), "residues": int(len(item["seq"])),
+                    "recovery_mean": float(np.mean([r["recovery"] for r in runs]))})
+    rec = np.array([r["recovery_mean"] for r in per])
+    w = np.array([r["residues"] for r in per], float)
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(rec), (n_boot, len(rec)))
+    draws = (rec[idx] * w[idx]).sum(1) / w[idx].sum(1)
+    point = float((rec * w).sum() / w.sum())
+    lo, hi = np.percentile(draws, [2.5, 97.5])
+    return point, float(lo), float(hi), per
+
+
 def evaluate_frequency_baseline(train_set, test_set):
     """Baseline predicting marginal amino acid frequencies from train set."""
     train_counts = {aa: 0 for aa in ALPHABET[:20]}
@@ -168,6 +249,7 @@ def evaluate_frequency_baseline(train_set, test_set):
 def main():
     device = "cpu"
     seed = 42
+    n_orders = 10          # decoding orders averaged per reported number
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
@@ -180,14 +262,31 @@ def main():
     dataset = load_dataset(structures_dir)
     print(f"Loaded {len(dataset)} valid structures.")
 
-    train_set, test_set = split_dataset(dataset, test_fraction=0.20, seed=seed)
-    print(f"Train structures: {len(train_set)} | Held-out test structures: {len(test_set)}")
+    train_set, val_set, test_set = split_dataset(dataset, seed=seed)
+    print(f"Train: {len(train_set)} | Validation: {len(val_set)} | Held-out test: {len(test_set)} structures")
+    print("The test set is scored once, after training, using the checkpoint chosen on validation.")
+    print("Splits are by sequence-similarity cluster, so homologous structures cannot straddle them.")
+
+    # Confirm the split actually separates homologs, and record it.
+    def kmers(s, k=5):
+        return {s[i:i + k] for i in range(len(s) - k + 1)}
+    train_k = [kmers(d["seq"]) for d in train_set]
+    leak = []
+    for d in test_set:
+        kt = kmers(d["seq"])
+        worst = max((len(kt & kr) / max(len(kt), 1) for kr in train_k), default=0.0)
+        if worst > 0.5:
+            leak.append((d["name"], worst))
+    print(f"Test structures sharing more than half their 5-mers with any training structure: "
+          f"{len(leak)} of {len(test_set)}")
 
     # Save split info
     split_info = {
         "train_pdb_ids": [d["name"] for d in train_set],
+        "val_pdb_ids": [d["name"] for d in val_set],
         "test_pdb_ids": [d["name"] for d in test_set],
         "total_train_residues": sum(len(d["seq"]) for d in train_set),
+        "total_val_residues": sum(len(d["seq"]) for d in val_set),
         "total_test_residues": sum(len(d["seq"]) for d in test_set),
     }
     with open(os.path.join(structures_dir, "splits.json"), "w") as fh:
@@ -219,7 +318,7 @@ def main():
     model.to(device)
 
     # 3. Untrained Model Evaluation
-    untrained_metrics = compute_metrics(model, test_set, device=device)
+    untrained_metrics = compute_metrics_multi(model, test_set, device=device, n_orders=n_orders)
     print(f"Untrained ProteinMPNN: Loss = {untrained_metrics['loss']:.4f}, "
           f"Perplexity = {untrained_metrics['perplexity']:.2f}, "
           f"Recovery = {untrained_metrics['recovery']*100:.2f}%")
@@ -235,10 +334,12 @@ def main():
         "epoch": [],
         "train_loss": [],
         "train_recovery": [],
-        "test_loss": [],
-        "test_perplexity": [],
-        "test_recovery": [],
+        "val_loss": [],
+        "val_perplexity": [],
+        "val_recovery": [],
     }
+    best = {"val_recovery": -1.0, "epoch": 0, "state": None}
+    patience, since_best = 10, 0
 
     print("\n=== Training ProteinMPNN on Real Backbone Graphs ===")
     for epoch in range(1, epochs + 1):
@@ -272,22 +373,43 @@ def main():
         train_loss = epoch_loss_sum / max(epoch_tokens, 1.0)
         train_rec = epoch_correct / max(epoch_tokens, 1.0)
 
-        # Evaluate on held-out test backbones
-        test_m = compute_metrics(model, test_set, device=device)
+        # Evaluate on validation only. The test set is not touched inside this loop.
+        val_m = compute_metrics(model, val_set, device=device)
 
         history["epoch"].append(epoch)
         history["train_loss"].append(train_loss)
         history["train_recovery"].append(train_rec)
-        history["test_loss"].append(test_m["loss"])
-        history["test_perplexity"].append(test_m["perplexity"])
-        history["test_recovery"].append(test_m["recovery"])
+        history["val_loss"].append(val_m["loss"])
+        history["val_perplexity"].append(val_m["perplexity"])
+        history["val_recovery"].append(val_m["recovery"])
+
+        if val_m["recovery"] > best["val_recovery"]:
+            best = {"val_recovery": val_m["recovery"], "epoch": epoch,
+                    "state": copy.deepcopy(model.state_dict())}
+            since_best = 0
+        else:
+            since_best += 1
 
         if epoch % 5 == 0 or epoch == 1 or epoch == epochs:
             print(f"Epoch {epoch:2d}/{epochs:2d} | Train Loss: {train_loss:.4f} (Rec: {train_rec*100:.1f}%) | "
-                  f"Test Loss: {test_m['loss']:.4f} | Test Ppl: {test_m['perplexity']:.2f} | "
-                  f"Test Rec: {test_m['recovery']*100:.2f}%")
+                  f"Val Loss: {val_m['loss']:.4f} | Val Ppl: {val_m['perplexity']:.2f} | "
+                  f"Val Rec: {val_m['recovery']*100:.2f}%")
 
-    final_trained_metrics = compute_metrics(model, test_set, device=device)
+        if since_best >= patience:
+            print(f"No validation improvement for {patience} epochs; stopping at epoch {epoch}.")
+            break
+
+    # Restore the checkpoint chosen on validation, then score the test set once.
+    if best["state"] is not None:
+        model.load_state_dict(best["state"])
+    print(f"\nBest validation recovery {best['val_recovery']*100:.2f}% at epoch {best['epoch']}; "
+          f"scoring the held-out test set now, for the first time.")
+    final_trained_metrics = compute_metrics_multi(model, test_set, device=device, n_orders=n_orders)
+    t_point, t_lo, t_hi, t_per = recovery_ci_over_structures(model, test_set, device=device, n_orders=n_orders)
+    final_trained_metrics.update({"recovery_ci_over_structures": [t_lo, t_hi], "per_structure": t_per,
+                                  "selected_epoch": best["epoch"],
+                                  "val_recovery_at_selection": best["val_recovery"]})
+    print(f"Test recovery {t_point*100:.2f}%  95% CI over structures [{t_lo*100:.1f}%, {t_hi*100:.1f}%]")
     torch.save(model.state_dict(), os.path.join(results_dir, "mpnn_trained_weights.pt"))
 
     # 5. Pretrained ProteinMPNN Benchmark
@@ -309,7 +431,12 @@ def main():
         )
         p_model.load_state_dict(ckpt["model_state_dict"])
         p_model.to(device)
-        pretrained_metrics = compute_metrics(p_model, test_set, device=device)
+        pretrained_metrics = compute_metrics_multi(p_model, test_set, device=device, n_orders=n_orders)
+        p_point, p_lo, p_hi, p_per = recovery_ci_over_structures(p_model, test_set, device=device,
+                                                                 n_orders=n_orders)
+        pretrained_metrics.update({"recovery_ci_over_structures": [p_lo, p_hi], "per_structure": p_per,
+                                   "caveat": "trained on the PDB; these test structures predate its "
+                                             "training cutoff, so this is not a held-out score"})
         print(f"Pretrained Model: Loss = {pretrained_metrics['loss']:.4f}, "
               f"Perplexity = {pretrained_metrics['perplexity']:.2f}, "
               f"Recovery = {pretrained_metrics['recovery']*100:.2f}%")
@@ -321,7 +448,7 @@ def main():
 
     # Loss & Perplexity
     ax1.plot(history["epoch"], history["train_loss"], label="Train Loss (NLL)", color="#1f77b4", lw=2)
-    ax1.plot(history["epoch"], history["test_loss"], label="Test Loss (Held-out)", color="#ff7f0e", lw=2, ls="--")
+    ax1.plot(history["epoch"], history["val_loss"], label="Validation Loss", color="#ff7f0e", lw=2, ls="--")
     ax1.set_xlabel("Epoch", fontsize=11)
     ax1.set_ylabel("Cross-Entropy Loss (NLL)", fontsize=11)
     ax1.set_title("ProteinMPNN Optimization Curve", fontsize=12, fontweight="bold")
@@ -330,7 +457,8 @@ def main():
 
     # Sequence Recovery Rate
     ax2.plot(history["epoch"], [r * 100 for r in history["train_recovery"]], label="Train Recovery", color="#2ca02c", lw=2)
-    ax2.plot(history["epoch"], [r * 100 for r in history["test_recovery"]], label="Held-out Test Recovery", color="#d62728", lw=2, ls="--")
+    ax2.plot(history["epoch"], [r * 100 for r in history["val_recovery"]], label="Validation Recovery", color="#d62728", lw=2, ls="--")
+    ax2.axvline(final_trained_metrics["selected_epoch"], color="k", ls="-", lw=1, alpha=0.6, label="Checkpoint chosen")
     ax2.axhline(random_recovery * 100, color="gray", ls=":", label="Random (5.0%)")
     ax2.axhline(freq_base["test_recovery"] * 100, color="purple", ls=":", label=f"Frequency ({freq_base['test_recovery']*100:.1f}%)")
     if pretrained_metrics:
@@ -425,11 +553,17 @@ def main():
         "dataset": {
             "total_structures": len(dataset),
             "train_structures": len(train_set),
+            "val_structures": len(val_set),
             "test_structures": len(test_set),
             "total_train_residues": split_info["total_train_residues"],
+            "total_val_residues": split_info["total_val_residues"],
             "total_test_residues": split_info["total_test_residues"],
             "train_pdb_ids": split_info["train_pdb_ids"],
+            "val_pdb_ids": split_info["val_pdb_ids"],
             "test_pdb_ids": split_info["test_pdb_ids"],
+            "protocol": "test scored once, after training, with the checkpoint chosen on validation",
+            "split_by": "sequence-similarity cluster (5-mer Jaccard >= 0.3, single linkage)",
+            "test_structures_sharing_half_their_kmers_with_train": len(leak),
         },
         "baselines": {
             "random": {"recovery": random_recovery, "perplexity": random_perplexity},

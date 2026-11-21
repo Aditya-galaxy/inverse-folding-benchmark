@@ -1,0 +1,43 @@
+/Users/aditya/Agent/protein-binder-design/.venv/lib/python3.13/site-packages/torch/_dynamo/eval_frame.py:1552: UserWarning: torch.utils.checkpoint: the use_reentrant parameter should be passed explicitly. In a future release, calling checkpoint without use_reentrant will raise an exception. use_reentrant=False is recommended, but if you need to preserve the current default behavior, you can pass use_reentrant=True. Refer to docs for more details on the differences between the two variants.
+  return fn(*args, **kwargs)
+/Users/aditya/Agent/protein-binder-design/.venv/lib/python3.13/site-packages/torch/utils/checkpoint.py:242: UserWarning: None of the inputs have requires_grad=True. Gradients will be None
+  check_backward_validity(args)
+=== Loading Real Crystal Structures from RCSB PDB ===
+Loaded 352 valid structures.
+Train: 231 | Validation: 61 | Held-out test: 60 structures
+The test set is scored once, after training, using the checkpoint chosen on validation.
+Splits are by sequence-similarity cluster, so homologous structures cannot straddle them.
+Test structures sharing more than half their 5-mers with any training structure: 0 of 60
+Frequency Baseline (Most common AA = L): Recovery = 9.37%
+Random Baseline: Recovery = 5.00%, Perplexity = 20.0
+Untrained ProteinMPNN: Loss = 3.6402, Perplexity = 38.10, Recovery = 4.91%
+
+=== Training ProteinMPNN on Real Backbone Graphs ===
+Epoch  1/40 | Train Loss: 2.9936 (Rec: 8.3%) | Val Loss: 2.8190 | Val Ppl: 16.76 | Val Rec: 11.18%
+Epoch  5/40 | Train Loss: 2.4660 (Rec: 22.0%) | Val Loss: 2.5413 | Val Ppl: 12.70 | Val Rec: 20.85%
+Epoch 10/40 | Train Loss: 1.9725 (Rec: 38.7%) | Val Loss: 2.4207 | Val Ppl: 11.25 | Val Rec: 25.99%
+Epoch 15/40 | Train Loss: 1.6287 (Rec: 49.0%) | Val Loss: 2.3099 | Val Ppl: 10.07 | Val Rec: 28.57%
+Epoch 20/40 | Train Loss: 1.2541 (Rec: 60.4%) | Val Loss: 2.4637 | Val Ppl: 11.75 | Val Rec: 30.41%
+Epoch 25/40 | Train Loss: 0.8695 (Rec: 72.2%) | Val Loss: 2.8968 | Val Ppl: 18.12 | Val Rec: 30.46%
+Epoch 30/40 | Train Loss: 0.5970 (Rec: 80.7%) | Val Loss: 3.2070 | Val Ppl: 24.70 | Val Rec: 29.56%
+Epoch 35/40 | Train Loss: 0.4293 (Rec: 85.8%) | Val Loss: 3.4226 | Val Ppl: 30.65 | Val Rec: 30.81%
+Epoch 40/40 | Train Loss: 0.3338 (Rec: 89.1%) | Val Loss: 3.6537 | Val Ppl: 38.62 | Val Rec: 30.17%
+
+Best validation recovery 30.81% at epoch 35; scoring the held-out test set now, for the first time.
+Test recovery 31.71%  95% CI over structures [28.3%, 35.5%]
+
+=== Evaluating Pretrained ProteinMPNN (PDB-scale) ===
+Pretrained Model: Loss = 1.3862, Perplexity = 4.00, Recovery = 55.74%
+
+=== Generating Benchmark Visualizations ===
+Saved: /Users/aditya/Agent/protein-binder-design/results/mpnn_training_curves.png
+Saved: /Users/aditya/Agent/protein-binder-design/results/benchmark_comparison.png
+Saved: /Users/aditya/Agent/protein-binder-design/results/biochemical_class_recovery.png
+Saved: /Users/aditya/Agent/protein-binder-design/results/training_summary.json
+
+=== Benchmark Summary ===
+Random Baseline Recovery:      5.00% (Perplexity: 20.0)
+Frequency Baseline Recovery:   9.37% (Most frequent: L)
+Untrained ProteinMPNN Recovery:4.91% (Perplexity: 38.10)
+Trained ProteinMPNN Recovery:  31.72% (Perplexity: 34.23)
+Pretrained ProteinMPNN Recovery: 55.74% (Perplexity: 4.00)
